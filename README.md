@@ -93,6 +93,12 @@ OPENCLAW_API_KEY=demo-key npm run dev
 └── docs/site-analysis.md         # 目标站调研结论
 ```
 
+## 部署
+
+RackNerd VPS 部署脚本与 Cloudflare 域名绑定说明见：
+
+- `docs/deploy-racknerd.md`
+
 ## 下一步（建议）
 
 1. 接入真实抓取器（微信公众号/X/博客 URL -> 清洗正文）。

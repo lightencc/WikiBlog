@@ -10,33 +10,6 @@ const OBSIDIAN_VAULT_DIR = storageConfig.obsidianVaultPath;
 const OBSIDIAN_ROOT_DIR = storageConfig.obsidianRootPath;
 const EMOJI_REGEX = /[\p{Extended_Pictographic}]/u;
 const EMOJI_GLOBAL_REGEX = /[\p{Extended_Pictographic}]/gu;
-const THEME_IMAGE_POOLS = {
-  ai: [
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1600&q=80"
-  ],
-  business: [
-    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1444653389962-8149286c578a?auto=format&fit=crop&w=1600&q=80"
-  ],
-  notes: [
-    "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80"
-  ],
-  thinking: [
-    "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1600&q=80"
-  ],
-  default: [
-    "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1487014679447-9f8336841d58?auto=format&fit=crop&w=1600&q=80"
-  ]
-};
 const THEME_MATCHERS = [
   {
     theme: "ai",
@@ -126,16 +99,6 @@ function inferTheme(articleInput) {
   );
 
   return matched ? matched.theme : "default";
-}
-
-function pickThematicListCover(articleInput) {
-  const theme = inferTheme(articleInput);
-  const pool = THEME_IMAGE_POOLS[theme] || THEME_IMAGE_POOLS.default;
-  const seed = `${articleInput.slug || articleInput.title || theme}-${theme}`;
-  const numericHash = parseInt(hashString(seed), 36);
-  const index = Number.isNaN(numericHash) ? 0 : numericHash % pool.length;
-
-  return pool[index];
 }
 
 function sanitizeUnicodeSlug(input) {
@@ -308,7 +271,7 @@ function buildArticleRecord(input) {
     normalizeStringArray(input.categories || input.category)
   );
   const { html, toc } = renderMarkdownWithToc(contentMarkdown);
-  const listCoverImage = input.listCoverImage || pickThematicListCover(input);
+  const listCoverImage = input.listCoverImage || input.coverImage || "";
 
   return {
     slug: input.slug,
