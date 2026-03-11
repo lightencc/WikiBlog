@@ -1,0 +1,15 @@
+<%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
+<body class="list" id="top">
+<%- include("partials/header", { siteConfig, activeNav }) %>
+
+<main class="main">
+  <% if (pageHeader) { %>
+    <header class="page-header">
+      <h1><%= pageHeader %></h1>
+    </header>
+  <% } %>
+
+  <%- include("partials/post-cards", { posts, formatDate, emptyMessage }) %>
+</main>
+
+<%- include("partials/footer", { siteConfig }) %>

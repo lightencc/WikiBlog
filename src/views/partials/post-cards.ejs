@@ -1,0 +1,37 @@
+<% if (!posts || posts.length === 0) { %>
+  <p class="post-empty"><%= emptyMessage || "暂无文章。" %></p>
+<% } %>
+
+<% (posts || []).forEach((post) => { %>
+  <article class="post-entry">
+    <% if (post.listCoverImage) { %>
+      <figure class="entry-cover">
+        <img loading="lazy" src="<%= post.listCoverImage %>" alt="<%= post.title %>" />
+      </figure>
+    <% } %>
+
+    <header class="entry-header">
+      <h2 class="entry-hint-parent"><%= post.title %></h2>
+    </header>
+
+    <div class="entry-content">
+      <p><%= post.summary %></p>
+    </div>
+
+    <footer class="entry-footer">
+      <span title="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></span>
+      &nbsp;·&nbsp;
+      <span><%= post.readingTimeMinutes %> 分钟</span>
+      &nbsp;·&nbsp;
+      <span><%= post.wordCount %> 字</span>
+      &nbsp;·&nbsp;
+      <span><%= post.author %></span>
+      <% if (post.categories && post.categories.length > 0) { %>
+        &nbsp;·&nbsp;
+        <span><%= post.categories[0] %></span>
+      <% } %>
+    </footer>
+
+    <a class="entry-link" aria-label="post link to <%= post.title %>" href="/posts/<%= post.slug %>/"></a>
+  </article>
+<% }) %>

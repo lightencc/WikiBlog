@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenClaw PaperMod Publisher"
+  short_description: "按 PaperMod 风格整理并上传收藏文章"
+  default_prompt: "Use $openclaw-papermod-publisher to normalize this curated article and publish it through /api/v1/articles."

@@ -1,0 +1,31 @@
+<%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
+<body class="list" id="top">
+<%- include("partials/header", { siteConfig, activeNav }) %>
+
+<main class="main">
+  <header class="page-header">
+    <h1>搜索</h1>
+  </header>
+
+  <form id="searchbox" method="get" action="/search/">
+    <input
+      id="searchInput"
+      name="q"
+      type="search"
+      value="<%= query %>"
+      placeholder="输入标题、标签、分类、作者或关键词"
+      autocomplete="off"
+    />
+  </form>
+
+  <% if (!query) { %>
+    <p class="post-empty">输入关键词后回车。</p>
+  <% } else if (results.length === 0) { %>
+    <p class="post-empty">没有找到与“<%= query %>”相关的文章。</p>
+  <% } else { %>
+    <p class="search-meta">找到 <strong><%= results.length %></strong> 篇相关文章</p>
+    <%- include("partials/post-cards", { posts: results, formatDate, emptyMessage: "" }) %>
+  <% } %>
+</main>
+
+<%- include("partials/footer", { siteConfig }) %>

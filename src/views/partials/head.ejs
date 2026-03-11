@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh" dir="auto" data-theme="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="robots" content="index, follow" />
+    <title><%= pageTitle %></title>
+    <meta name="description" content="<%= pageDescription %>" />
+    <meta name="author" content="<%= siteConfig.ownerName %>" />
+    <link rel="icon" href="/assets/favicon.ico" />
+    <link rel="stylesheet" href="/assets/css/papermod.css" />
+    <link rel="stylesheet" href="/assets/css/site.css" />
+    <script>
+      if (localStorage.getItem("pref-theme") === "dark") {
+        document.documentElement.dataset.theme = "dark";
+      } else if (localStorage.getItem("pref-theme") === "light") {
+        document.documentElement.dataset.theme = "light";
+      } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.dataset.theme = "dark";
+      } else {
+        document.documentElement.dataset.theme = "light";
+      }
+    </script>
+  </head>

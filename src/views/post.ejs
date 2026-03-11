@@ -1,0 +1,107 @@
+<%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
+<body id="top">
+<%- include("partials/header", { siteConfig, activeNav }) %>
+
+<main class="main">
+  <article class="post-single">
+    <header class="post-header">
+      <h1 class="post-title entry-hint-parent"><%= post.title %></h1>
+      <blockquote class="post-description"><%= post.summary %></blockquote>
+      <div class="post-meta">
+        <span title="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></span>
+        &nbsp;·&nbsp;
+        <span><%= post.readingTimeMinutes %> 分钟</span>
+        &nbsp;·&nbsp;
+        <span><%= post.wordCount %> 字</span>
+        &nbsp;·&nbsp;
+        <span><%= post.author %></span>
+      </div>
+    </header>
+
+    <% if (post.coverImage) { %>
+      <figure class="entry-cover">
+        <img loading="eager" src="<%= post.coverImage %>" alt="<%= post.title %>" />
+      </figure>
+    <% } %>
+
+    <% if (post.toc.length > 0) { %>
+      <div class="toc">
+        <details>
+          <summary accesskey="c" title="(Alt + C)">
+            <span class="details">目录</span>
+          </summary>
+          <div class="inner">
+            <ul>
+              <% post.toc.forEach((item) => { %>
+                <li class="toc-depth-<%= item.depth %>">
+                  <a href="#<%= item.id %>" aria-label="<%= item.text %>"><%= item.text %></a>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        </details>
+      </div>
+    <% } %>
+
+    <div class="post-content"><%- post.contentHtml %></div>
+
+    <% if (post.source && post.source.url) { %>
+      <div class="post-source">
+        <p>
+          来源：
+          <a href="<%= post.source.url %>" target="_blank" rel="noopener noreferrer">
+            <%= post.source.name || post.source.url %>
+          </a>
+          <% if (post.source.platform) { %>
+            · 平台：<%= post.source.platform %>
+          <% } %>
+        </p>
+      </div>
+    <% } %>
+
+    <footer class="post-footer">
+      <% if (post.categoryRefs.length > 0) { %>
+        <div class="post-taxonomy-group">
+          <div class="taxonomy-title">分类</div>
+          <ul class="post-tags">
+            <% post.categoryRefs.forEach((item) => { %>
+              <li><a href="/categories/<%= item.slug %>/"><%= item.name %></a></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <% if (post.tagRefs.length > 0) { %>
+        <div class="post-taxonomy-group">
+          <div class="taxonomy-title">标签</div>
+          <ul class="post-tags">
+            <% post.tagRefs.forEach((item) => { %>
+              <li><a href="/tags/<%= item.slug %>/"><%= item.name %></a></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <% if (prev || next) { %>
+        <nav class="paginav">
+          <% if (prev) { %>
+            <a class="prev" href="/posts/<%= prev.slug %>/">
+              <span class="title">« 上一页</span>
+              <br />
+              <span><%= prev.title %></span>
+            </a>
+          <% } %>
+          <% if (next) { %>
+            <a class="next" href="/posts/<%= next.slug %>/">
+              <span class="title">下一页 »</span>
+              <br />
+              <span><%= next.title %></span>
+            </a>
+          <% } %>
+        </nav>
+      <% } %>
+    </footer>
+  </article>
+</main>
+
+<%- include("partials/footer", { siteConfig }) %>

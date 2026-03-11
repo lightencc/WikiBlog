@@ -1,0 +1,26 @@
+<%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
+<body class="list" id="top">
+<%- include("partials/header", { siteConfig, activeNav }) %>
+
+<main class="main">
+  <header class="page-header">
+    <h1><%= heading %></h1>
+  </header>
+
+  <% if (!terms || terms.length === 0) { %>
+    <p class="post-empty">暂无内容。</p>
+  <% } else { %>
+    <ul class="terms-tags">
+      <% terms.forEach((term) => { %>
+        <li>
+          <a href="<%= basePath %><%= term.slug %>/">
+            <%= term.name %>
+            <sup><strong><%= term.count %></strong></sup>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</main>
+
+<%- include("partials/footer", { siteConfig }) %>
