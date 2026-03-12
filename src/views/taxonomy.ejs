@@ -1,25 +1,60 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
-<body class="list" id="top">
-<%- include("partials/header", { siteConfig, activeNav }) %>
+<body class="app-shell list page-taxonomy taxonomy-<%= taxonomyKind %>" id="top">
+<%- include("partials/header", { siteConfig, primaryNavItems }) %>
 
-<main class="main">
-  <header class="page-header">
-    <h1><%= heading %></h1>
-  </header>
+<main class="main main-taxonomy">
+  <section class="hero-panel hero-standard">
+    <div class="hero-copy">
+      <p class="hero-kicker"><%= pageIntro.eyebrow %></p>
+      <h1><%= pageIntro.title %></h1>
+      <p class="hero-lead"><%= pageIntro.lead %></p>
+    </div>
+  </section>
 
   <% if (!terms || terms.length === 0) { %>
     <p class="post-empty">暂无内容。</p>
-  <% } else { %>
-    <ul class="terms-tags">
+  <% } else if (taxonomyKind === "categories") { %>
+    <section class="taxonomy-grid">
       <% terms.forEach((term) => { %>
-        <li>
-          <a href="<%= basePath %><%= term.slug %>/">
-            <%= term.name %>
-            <sup><strong><%= term.count %></strong></sup>
-          </a>
-        </li>
+        <article class="taxonomy-card">
+          <a class="taxonomy-card-link" href="<%= basePath %><%= term.slug %>/" aria-label="查看 <%= term.name %> 分类"></a>
+          <div class="taxonomy-card-meta">
+            <span class="taxonomy-pill">主题</span>
+            <span class="taxonomy-count"><%= term.count %> 篇</span>
+          </div>
+          <h2><%= term.name %></h2>
+          <% if (term.latestPostTitle) { %>
+            <p class="taxonomy-preview"><%= term.latestPostTitle %></p>
+          <% } %>
+          <% if (term.previewPosts && term.previewPosts.length > 0) { %>
+            <div class="taxonomy-mini-list">
+              <% term.previewPosts.slice(0, 2).forEach((post) => { %>
+                <span class="taxonomy-mini-item"><%= post.title %></span>
+              <% }) %>
+            </div>
+          <% } %>
+        </article>
       <% }) %>
-    </ul>
+    </section>
+  <% } else { %>
+    <section class="tag-wall-section">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Tag Wall</p>
+          <h2><%= heading %></h2>
+        </div>
+        <span class="section-badge"><%= terms.length %> 个</span>
+      </div>
+
+      <div class="tag-wall">
+        <% terms.forEach((term) => { %>
+          <a class="tag-wall-chip" href="<%= basePath %><%= term.slug %>/">
+            <span>#<%= term.name %></span>
+            <strong><%= term.count %></strong>
+          </a>
+        <% }) %>
+      </div>
+    </section>
   <% } %>
 </main>
 

@@ -1,39 +1,40 @@
-(function menuController() {
-  const toggleButton = document.getElementById("menu-toggle");
-  const menu = document.getElementById("menu");
+(function headerStateController() {
+  const root = document.documentElement;
+  let ticking = false;
 
-  if (!toggleButton || !menu) {
+  function updateHeaderState() {
+    root.dataset.headerState = window.scrollY > 18 ? "compact" : "expanded";
+    ticking = false;
+  }
+
+  updateHeaderState();
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (ticking) {
+        return;
+      }
+
+      ticking = true;
+      window.requestAnimationFrame(updateHeaderState);
+    },
+    { passive: true }
+  );
+})();
+
+(function activeChipScroller() {
+  const activeChip = document.querySelector(".nav-chip[aria-current='page']");
+
+  if (!activeChip) {
     return;
   }
 
-  function closeMenu() {
-    menu.classList.remove("active");
-    toggleButton.classList.remove("active");
-    toggleButton.setAttribute("aria-expanded", "false");
-  }
-
-  toggleButton.addEventListener("click", () => {
-    const isOpen = menu.classList.toggle("active");
-    toggleButton.classList.toggle("active");
-    toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  });
-
-  menu.addEventListener("click", (event) => {
-    if (event.target.closest("a")) {
-      closeMenu();
-    }
-  });
-
-  document.addEventListener("click", (event) => {
-    if (!toggleButton.contains(event.target) && !menu.contains(event.target)) {
-      closeMenu();
-    }
-  });
-
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 768) {
-      closeMenu();
-    }
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  activeChip.scrollIntoView({
+    block: "nearest",
+    inline: "center",
+    behavior: reducedMotion ? "auto" : "smooth"
   });
 })();
 
@@ -44,19 +45,16 @@
     return;
   }
 
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-        topLink.style.visibility = "visible";
-        topLink.style.opacity = "1";
-      } else {
-        topLink.style.visibility = "hidden";
-        topLink.style.opacity = "0";
-      }
-    },
-    { passive: true }
-  );
+  function updateTopLink() {
+    const isVisible = document.documentElement.scrollTop > 360 || document.body.scrollTop > 360;
+
+    topLink.style.visibility = isVisible ? "visible" : "hidden";
+    topLink.style.opacity = isVisible ? "1" : "0";
+  }
+
+  updateTopLink();
+
+  window.addEventListener("scroll", updateTopLink, { passive: true });
 })();
 
 (function themeController() {
@@ -80,6 +78,51 @@
   });
 })();
 
+(function searchFocusController() {
+  const searchInput = document.querySelector("[data-search-input]");
+
+  if (!searchInput) {
+    return;
+  }
+
+  const body = document.body;
+
+  searchInput.addEventListener("focus", () => {
+    body.classList.add("is-search-focus");
+  });
+
+  searchInput.addEventListener("blur", () => {
+    body.classList.remove("is-search-focus");
+  });
+})();
+
+(function sourceCtaFeedback() {
+  const cta = document.querySelector("[data-source-cta]");
+  const label = cta && cta.querySelector(".source-cta-label");
+
+  if (!cta || !label) {
+    return;
+  }
+
+  const defaultLabel = cta.dataset.labelDefault || label.textContent;
+  const openLabel = cta.dataset.labelOpen || defaultLabel;
+  let resetTimer = null;
+
+  function resetLabel() {
+    label.textContent = defaultLabel;
+    cta.classList.remove("is-opening");
+  }
+
+  cta.addEventListener("click", () => {
+    window.clearTimeout(resetTimer);
+    cta.classList.add("is-opening");
+    label.textContent = openLabel;
+    resetTimer = window.setTimeout(resetLabel, 1400);
+  });
+
+  window.addEventListener("pageshow", resetLabel);
+})();
+
 (function smoothAnchor() {
   const anchors = document.querySelectorAll('a[href^="#"]');
 
@@ -99,7 +142,10 @@
       }
 
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      target.scrollIntoView(reducedMotion ? undefined : { behavior: "smooth" });
+      target.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+        block: "start"
+      });
       history.pushState(null, "", raw);
     });
   });

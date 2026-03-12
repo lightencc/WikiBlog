@@ -16,6 +16,12 @@ const {
 
 const app = express();
 const port = Number(process.env.PORT || 4321);
+const PRIMARY_NAV_ITEMS = [
+  { key: "home", href: "/", label: "最新" },
+  { key: "categories", href: "/categories/", label: "分类" },
+  { key: "tags", href: "/tags/", label: "标签" },
+  { key: "search", href: "/search/", label: "搜索" }
+];
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -35,6 +41,93 @@ if (fs.existsSync(storageConfig.obsidianRootPath)) {
 
 function formatDate(value) {
   return new Date(value).toISOString().slice(0, 10);
+}
+
+function buildPrimaryNav(activeNav) {
+  return PRIMARY_NAV_ITEMS.map((item) => ({
+    ...item,
+    isActive: item.key === activeNav
+  }));
+}
+
+function buildFeaturedTerms(terms, basePath, limit) {
+  return terms.slice(0, limit).map((term) => ({
+    name: term.name,
+    slug: term.slug,
+    count: term.count,
+    href: `${basePath}${term.slug}/`,
+    latestPostTitle: term.latestPostTitle || "",
+    latestPublishedAt: term.latestPublishedAt || ""
+  }));
+}
+
+function getSourcePlatformLabel(source) {
+  const platform = String(source?.platform || "").trim().toLowerCase();
+
+  if (platform === "x") {
+    return "X";
+  }
+  if (platform === "wechat") {
+    return "公众号";
+  }
+  if (platform === "newsletter") {
+    return "Newsletter";
+  }
+  if (platform === "blog") {
+    return "Blog";
+  }
+  if (platform === "github") {
+    return "GitHub";
+  }
+
+  return source?.platform || "原文";
+}
+
+function buildSourceCta(source) {
+  if (!source?.url) {
+    return null;
+  }
+
+  return {
+    url: source.url,
+    label: "去原文深读",
+    sourceName: source.name || getSourcePlatformLabel(source),
+    platformLabel: getSourcePlatformLabel(source)
+  };
+}
+
+function buildViewModel({
+  activeNav,
+  pageKind,
+  featuredTags,
+  featuredCategories,
+  extra = {}
+}) {
+  return {
+    siteConfig,
+    pageKind,
+    primaryNavItems: buildPrimaryNav(activeNav),
+    featuredTags:
+      featuredTags || buildFeaturedTerms(getAllTags(), "/tags/", 8),
+    featuredCategories:
+      featuredCategories || buildFeaturedTerms(getAllCategories(), "/categories/", 4),
+    ...extra
+  };
+}
+
+function renderNotFound(res, activeNav, message) {
+  res.status(404).render(
+    "not-found",
+    buildViewModel({
+      activeNav,
+      pageKind: "not-found",
+      extra: {
+        pageTitle: "404 | Not Found",
+        pageDescription: message,
+        message
+      }
+    })
+  );
 }
 
 function requireApiKey(req, res, next) {
@@ -57,133 +150,199 @@ function requireApiKey(req, res, next) {
 
 app.get("/", (_req, res) => {
   const posts = getAllArticles();
+  const featuredTags = buildFeaturedTerms(getAllTags(), "/tags/", 8);
+  const featuredCategories = buildFeaturedTerms(getAllCategories(), "/categories/", 4);
 
-  res.render("index", {
-    pageTitle: siteConfig.siteName,
-    pageDescription: siteConfig.siteDescription,
-    siteConfig,
-    posts,
-    formatDate,
-    pageHeader: "最新收藏",
-    emptyMessage: "还没有文章，先上传第一篇吧。",
-    activeNav: "home"
-  });
+  res.render(
+    "index",
+    buildViewModel({
+      activeNav: "home",
+      pageKind: "home",
+      featuredTags,
+      featuredCategories,
+      extra: {
+        pageTitle: siteConfig.siteName,
+        pageDescription: siteConfig.siteDescription,
+        posts,
+        formatDate,
+        emptyMessage: "还没有文章，先上传第一篇吧。",
+        pageIntro: {
+          eyebrow: "Reading Recall",
+          title: "最新收藏",
+          lead: "刷推时顺手收藏，AI 自动整理成可回看的轻笔记。"
+        },
+        pageSectionTitle: "今天适合回看的内容",
+        pageSectionHint: `${posts.length} 篇笔记已整理完成`
+      }
+    })
+  );
 });
 
 app.get("/categories/", (_req, res) => {
-  res.render("taxonomy", {
-    pageTitle: `分类 | ${siteConfig.siteName}`,
-    pageDescription: "按分类浏览文章",
-    siteConfig,
-    heading: "分类",
-    terms: getAllCategories(),
-    basePath: "/categories/",
-    activeNav: "categories"
-  });
+  const categories = getAllCategories();
+
+  res.render(
+    "taxonomy",
+    buildViewModel({
+      activeNav: "categories",
+      pageKind: "taxonomy",
+      featuredCategories: buildFeaturedTerms(categories, "/categories/", 4),
+      extra: {
+        pageTitle: `分类 | ${siteConfig.siteName}`,
+        pageDescription: "按分类浏览文章",
+        heading: "分类",
+        taxonomyKind: "categories",
+        terms: categories,
+        basePath: "/categories/",
+        pageIntro: {
+          eyebrow: "Themes",
+          title: "按主题回看",
+          lead: "用更稳定的主题脉络整理收藏，适合快速重拾某一类输入。"
+        }
+      }
+    })
+  );
 });
 
 app.get("/categories/:slug/", (req, res) => {
   const category = getCategoryBySlug(req.params.slug);
 
   if (!category) {
-    res.status(404).render("not-found", {
-      pageTitle: "404 | Not Found",
-      pageDescription: "分类不存在",
-      siteConfig,
-      activeNav: "categories"
-    });
+    renderNotFound(res, "categories", "分类不存在");
     return;
   }
 
-  res.render("index", {
-    pageTitle: `${category.name} | 分类 | ${siteConfig.siteName}`,
-    pageDescription: `分类 ${category.name} 下的文章`,
-    siteConfig,
-    posts: category.posts,
-    formatDate,
-    pageHeader: `分类：${category.name}`,
-    emptyMessage: "这个分类暂时没有文章。",
-    activeNav: "categories"
-  });
+  res.render(
+    "index",
+    buildViewModel({
+      activeNav: "categories",
+      pageKind: "category-feed",
+      extra: {
+        pageTitle: `${category.name} | 分类 | ${siteConfig.siteName}`,
+        pageDescription: `分类 ${category.name} 下的文章`,
+        posts: category.posts,
+        formatDate,
+        emptyMessage: "这个分类暂时没有文章。",
+        pageIntro: {
+          eyebrow: "Category",
+          title: category.name,
+          lead: `这个主题下有 ${category.count} 篇回看笔记，方便你一次重新接上上下文。`
+        },
+        pageSectionTitle: `${category.name} 的最新笔记`,
+        pageSectionHint: `${category.count} 篇`
+      }
+    })
+  );
 });
 
 app.get("/tags/", (_req, res) => {
-  res.render("taxonomy", {
-    pageTitle: `标签 | ${siteConfig.siteName}`,
-    pageDescription: "按标签浏览文章",
-    siteConfig,
-    heading: "标签",
-    terms: getAllTags(),
-    basePath: "/tags/",
-    activeNav: "tags"
-  });
+  const tags = getAllTags();
+
+  res.render(
+    "taxonomy",
+    buildViewModel({
+      activeNav: "tags",
+      pageKind: "taxonomy",
+      featuredTags: buildFeaturedTerms(tags, "/tags/", 8),
+      extra: {
+        pageTitle: `标签 | ${siteConfig.siteName}`,
+        pageDescription: "按标签浏览文章",
+        heading: "标签",
+        taxonomyKind: "tags",
+        terms: tags,
+        basePath: "/tags/",
+        pageIntro: {
+          eyebrow: "Tags",
+          title: "按标签切换视角",
+          lead: "轻量的标签墙让你快速跳转到某个概念、人物、产品或方法。"
+        }
+      }
+    })
+  );
 });
 
 app.get("/tags/:slug/", (req, res) => {
   const tag = getTagBySlug(req.params.slug);
 
   if (!tag) {
-    res.status(404).render("not-found", {
-      pageTitle: "404 | Not Found",
-      pageDescription: "标签不存在",
-      siteConfig,
-      activeNav: "tags"
-    });
+    renderNotFound(res, "tags", "标签不存在");
     return;
   }
 
-  res.render("index", {
-    pageTitle: `${tag.name} | 标签 | ${siteConfig.siteName}`,
-    pageDescription: `标签 ${tag.name} 下的文章`,
-    siteConfig,
-    posts: tag.posts,
-    formatDate,
-    pageHeader: `标签：${tag.name}`,
-    emptyMessage: "这个标签暂时没有文章。",
-    activeNav: "tags"
-  });
+  res.render(
+    "index",
+    buildViewModel({
+      activeNav: "tags",
+      pageKind: "tag-feed",
+      extra: {
+        pageTitle: `${tag.name} | 标签 | ${siteConfig.siteName}`,
+        pageDescription: `标签 ${tag.name} 下的文章`,
+        posts: tag.posts,
+        formatDate,
+        emptyMessage: "这个标签暂时没有文章。",
+        pageIntro: {
+          eyebrow: "Tag",
+          title: `#${tag.name}`,
+          lead: `这里收拢了 ${tag.count} 篇和 ${tag.name} 有关的回看摘要。`
+        },
+        pageSectionTitle: `${tag.name} 标签流`,
+        pageSectionHint: `${tag.count} 篇`
+      }
+    })
+  );
 });
 
 app.get("/search/", (req, res) => {
   const query = String(req.query.q || "").trim();
   const results = query ? searchArticles(query) : [];
 
-  res.render("search", {
-    pageTitle: `搜索 | ${siteConfig.siteName}`,
-    pageDescription: "站内文章搜索",
-    siteConfig,
-    query,
-    results,
-    formatDate,
-    activeNav: "search"
-  });
+  res.render(
+    "search",
+    buildViewModel({
+      activeNav: "search",
+      pageKind: "search",
+      extra: {
+        pageTitle: `搜索 | ${siteConfig.siteName}`,
+        pageDescription: "站内文章搜索",
+        query,
+        results,
+        formatDate,
+        pageIntro: {
+          eyebrow: "Search",
+          title: "搜索回看笔记",
+          lead: "按标题、摘要、标签、分类或作者，快速重新找到你曾经划过却还没读完的内容。"
+        }
+      }
+    })
+  );
 });
 
 app.get("/posts/:slug/", (req, res) => {
   const post = readArticleBySlug(req.params.slug);
 
   if (!post) {
-    res.status(404).render("not-found", {
-      pageTitle: "404 | Not Found",
-      pageDescription: "文章不存在",
-      siteConfig,
-      activeNav: "home"
-    });
+    renderNotFound(res, "home", "文章不存在");
     return;
   }
 
   const neighbors = getNeighborArticles(req.params.slug);
 
-  res.render("post", {
-    pageTitle: `${post.title} | ${siteConfig.siteName}`,
-    pageDescription: post.summary,
-    siteConfig,
-    post,
-    formatDate,
-    prev: neighbors.prev,
-    next: neighbors.next,
-    activeNav: "home"
-  });
+  res.render(
+    "post",
+    buildViewModel({
+      activeNav: "home",
+      pageKind: "post",
+      extra: {
+        pageTitle: `${post.title} | ${siteConfig.siteName}`,
+        pageDescription: post.summary,
+        post,
+        formatDate,
+        prev: neighbors.prev,
+        next: neighbors.next,
+        sourceCta: buildSourceCta(post.source)
+      }
+    })
+  );
 });
 
 app.get("/api/v1/health", (_req, res) => {
@@ -275,14 +434,13 @@ app.post("/api/v1/articles", requireApiKey, (req, res) => {
 });
 
 app.use((_req, res) => {
-  res.status(404).render("not-found", {
-    pageTitle: "404 | Not Found",
-    pageDescription: "页面不存在",
-    siteConfig,
-    activeNav: "home"
-  });
+  renderNotFound(res, "home", "页面不存在");
 });
 
-app.listen(port, () => {
-  console.log(`WikiBlog prototype is running at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`WikiBlog prototype is running at http://localhost:${port}`);
+  });
+}
+
+module.exports = app;

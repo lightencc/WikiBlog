@@ -1,30 +1,69 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
-<body class="list" id="top">
-<%- include("partials/header", { siteConfig, activeNav }) %>
+<body class="app-shell list page-search" id="top">
+<%- include("partials/header", { siteConfig, primaryNavItems }) %>
 
-<main class="main">
-  <header class="page-header">
-    <h1>搜索</h1>
-  </header>
+<main class="main main-search">
+  <section class="hero-panel hero-standard">
+    <div class="hero-copy">
+      <p class="hero-kicker"><%= pageIntro.eyebrow %></p>
+      <h1><%= pageIntro.title %></h1>
+      <p class="hero-lead"><%= pageIntro.lead %></p>
+    </div>
+  </section>
 
-  <form id="searchbox" method="get" action="/search/">
-    <input
-      id="searchInput"
-      name="q"
-      type="search"
-      value="<%= query %>"
-      placeholder="输入标题、标签、分类、作者或关键词"
-      autocomplete="off"
-    />
-  </form>
+  <section class="search-panel" data-search-panel>
+    <form id="searchbox" class="search-form" method="get" action="/search/">
+      <label class="search-field" for="searchInput">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          id="searchInput"
+          data-search-input
+          name="q"
+          type="search"
+          value="<%= query %>"
+          placeholder="输入标题、标签、分类、作者或关键词"
+          autocomplete="off"
+        />
+      </label>
 
-  <% if (!query) { %>
-    <p class="post-empty">输入关键词后回车。</p>
-  <% } else if (results.length === 0) { %>
-    <p class="post-empty">没有找到与“<%= query %>”相关的文章。</p>
-  <% } else { %>
-    <p class="search-meta">找到 <strong><%= results.length %></strong> 篇相关文章</p>
-    <%- include("partials/post-cards", { posts: results, formatDate, emptyMessage: "" }) %>
+      <% if (query) { %>
+        <a class="search-clear" href="/search/">清除</a>
+      <% } %>
+    </form>
+
+    <% if (!query) { %>
+      <div class="search-state-card">
+        <p>还没输入关键词时，可以先从这些标签切入。</p>
+        <div class="hero-chip-row">
+          <% featuredTags.slice(0, 6).forEach((tag) => { %>
+            <a class="hero-chip" href="/search/?q=<%= encodeURIComponent(tag.name) %>">#<%= tag.name %></a>
+          <% }) %>
+        </div>
+      </div>
+    <% } else if (results.length === 0) { %>
+      <div class="search-state-card">
+        <p>没有找到与“<strong><%= query %></strong>”相关的文章，试试换一个标签、作者或来源名。</p>
+      </div>
+    <% } else { %>
+      <p class="search-meta">找到 <strong><%= results.length %></strong> 篇相关文章</p>
+    <% } %>
+  </section>
+
+  <% if (results.length > 0) { %>
+    <section class="feed-section">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Search Results</p>
+          <h2>搜索结果</h2>
+        </div>
+        <span class="section-badge"><%= results.length %> 篇</span>
+      </div>
+
+      <%- include("partials/post-cards", { posts: results, formatDate, emptyMessage: "" }) %>
+    </section>
   <% } %>
 </main>
 

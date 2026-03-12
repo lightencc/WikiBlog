@@ -1,9 +1,16 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
-<body id="top">
-<%- include("partials/header", { siteConfig, activeNav }) %>
-<main class="main">
-  <h1>404</h1>
-  <p>页面不存在。</p>
-  <p><a href="/">返回首页</a></p>
+<body class="app-shell page-not-found" id="top">
+<%- include("partials/header", { siteConfig, primaryNavItems }) %>
+<main class="main main-not-found">
+  <section class="hero-panel hero-standard">
+    <div class="hero-copy">
+      <p class="hero-kicker">404</p>
+      <h1>这篇回看入口不见了</h1>
+      <p class="hero-lead"><%= message || "页面不存在。" %></p>
+    </div>
+    <div class="hero-actions">
+      <a class="search-pill" href="/">返回首页</a>
+    </div>
+  </section>
 </main>
 <%- include("partials/footer", { siteConfig }) %>

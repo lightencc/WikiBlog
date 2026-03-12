@@ -1,15 +1,85 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
-<body class="list" id="top">
-<%- include("partials/header", { siteConfig, activeNav }) %>
+<body class="app-shell list page-<%= pageKind %>" id="top">
+<%- include("partials/header", { siteConfig, primaryNavItems }) %>
 
-<main class="main">
-  <% if (pageHeader) { %>
-    <header class="page-header">
-      <h1><%= pageHeader %></h1>
-    </header>
-  <% } %>
+<main class="main main-feed">
+  <section class="hero-panel <%= pageKind === 'home' ? 'hero-home' : 'hero-standard' %>">
+    <div class="hero-copy">
+      <p class="hero-kicker"><%= pageIntro.eyebrow %></p>
+      <h1><%= pageIntro.title %></h1>
+      <p class="hero-lead"><%= pageIntro.lead %></p>
+    </div>
 
-  <%- include("partials/post-cards", { posts, formatDate, emptyMessage }) %>
+    <% if (pageKind === 'home') { %>
+      <div class="hero-actions">
+        <a class="search-pill" href="/search/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>搜索回看笔记</span>
+        </a>
+      </div>
+    <% } %>
+
+    <% if (pageKind === 'home' && featuredTags.length > 0) { %>
+      <div class="hero-chip-block">
+        <p class="hero-chip-label">热门标签</p>
+        <div class="hero-chip-row">
+          <% featuredTags.slice(0, 6).forEach((tag) => { %>
+            <a class="hero-chip" href="<%= tag.href %>">#<%= tag.name %></a>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (pageKind === 'home' && featuredCategories.length > 0) { %>
+      <div class="hero-chip-block">
+        <p class="hero-chip-label">主题分类</p>
+        <div class="hero-chip-row">
+          <% featuredCategories.forEach((category) => { %>
+            <a class="hero-chip hero-chip-soft" href="<%= category.href %>"><%= category.name %></a>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (pageKind === 'category-feed' && featuredTags.length > 0) { %>
+      <div class="hero-chip-block">
+        <p class="hero-chip-label">继续探索</p>
+        <div class="hero-chip-row">
+          <% featuredTags.slice(0, 5).forEach((tag) => { %>
+            <a class="hero-chip" href="<%= tag.href %>">#<%= tag.name %></a>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (pageKind === 'tag-feed' && featuredCategories.length > 0) { %>
+      <div class="hero-chip-block">
+        <p class="hero-chip-label">相关主题</p>
+        <div class="hero-chip-row">
+          <% featuredCategories.forEach((category) => { %>
+            <a class="hero-chip hero-chip-soft" href="<%= category.href %>"><%= category.name %></a>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="feed-section">
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">Recall Feed</p>
+        <h2><%= pageSectionTitle || "最新回看" %></h2>
+      </div>
+      <% if (pageSectionHint) { %>
+        <span class="section-badge"><%= pageSectionHint %></span>
+      <% } %>
+    </div>
+
+    <%- include("partials/post-cards", { posts, formatDate, emptyMessage }) %>
+  </section>
 </main>
 
 <%- include("partials/footer", { siteConfig }) %>

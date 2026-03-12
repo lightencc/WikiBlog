@@ -646,7 +646,14 @@ function getAllTags() {
   return buildTaxonomy("tags").map((item) => ({
     slug: item.slug,
     name: item.name,
-    count: item.count
+    count: item.count,
+    latestPostTitle: item.posts[0]?.title || "",
+    latestPublishedAt: item.posts[0]?.publishedAt || "",
+    previewPosts: item.posts.slice(0, 3).map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      publishedAt: post.publishedAt
+    }))
   }));
 }
 
@@ -654,7 +661,14 @@ function getAllCategories() {
   return buildTaxonomy("categories").map((item) => ({
     slug: item.slug,
     name: item.name,
-    count: item.count
+    count: item.count,
+    latestPostTitle: item.posts[0]?.title || "",
+    latestPublishedAt: item.posts[0]?.publishedAt || "",
+    previewPosts: item.posts.slice(0, 3).map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      publishedAt: post.publishedAt
+    }))
   }));
 }
 

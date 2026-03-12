@@ -4,34 +4,50 @@
 
 <% (posts || []).forEach((post) => { %>
   <article class="post-entry">
-    <% if (post.listCoverImage) { %>
-      <figure class="entry-cover">
-        <img loading="lazy" src="<%= post.listCoverImage %>" alt="<%= post.title %>" />
-      </figure>
-    <% } %>
+    <a class="post-card-link <%= post.listCoverImage ? 'has-thumb' : '' %>" aria-label="post link to <%= post.title %>" href="/posts/<%= post.slug %>/">
+      <div class="entry-main">
+        <div class="entry-overline">
+          <% if (post.source && (post.source.name || post.source.platform)) { %>
+            <span class="entry-source"><%= post.source.name || post.source.platform %></span>
+            <span class="entry-dot" aria-hidden="true"></span>
+          <% } %>
+          <time datetime="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></time>
+        </div>
 
-    <header class="entry-header">
-      <h2 class="entry-hint-parent"><%= post.title %></h2>
-    </header>
+        <header class="entry-header">
+          <h2 class="entry-hint-parent"><%= post.title %></h2>
+        </header>
 
-    <div class="entry-content">
-      <p><%= post.summary %></p>
-    </div>
+        <div class="entry-content">
+          <p><%= post.summary %></p>
+        </div>
 
-    <footer class="entry-footer">
-      <span title="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></span>
-      &nbsp;·&nbsp;
-      <span><%= post.readingTimeMinutes %> 分钟</span>
-      &nbsp;·&nbsp;
-      <span><%= post.wordCount %> 字</span>
-      &nbsp;·&nbsp;
-      <span><%= post.author %></span>
-      <% if (post.categories && post.categories.length > 0) { %>
-        &nbsp;·&nbsp;
-        <span><%= post.categories[0] %></span>
+        <% if ((post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) || post.language) { %>
+          <div class="entry-tags" aria-label="文章标签">
+            <% if (post.categories && post.categories.length > 0) { %>
+              <span class="entry-tag entry-tag-accent"><%= post.categories[0] %></span>
+            <% } %>
+            <% (post.tags || []).slice(0, 3).forEach((tag) => { %>
+              <span class="entry-tag">#<%= tag %></span>
+            <% }) %>
+            <% if (post.language && String(post.language).toLowerCase() !== "zh") { %>
+              <span class="entry-tag"><%= String(post.language).toUpperCase() %></span>
+            <% } %>
+          </div>
+        <% } %>
+
+        <footer class="entry-footer">
+          <span><%= post.readingTimeMinutes %> 分钟</span>
+          <span class="entry-dot" aria-hidden="true"></span>
+          <span><%= post.wordCount %> 字</span>
+        </footer>
+      </div>
+
+      <% if (post.listCoverImage) { %>
+        <figure class="entry-thumb">
+          <img loading="lazy" src="<%= post.listCoverImage %>" alt="<%= post.title %>" />
+        </figure>
       <% } %>
-    </footer>
-
-    <a class="entry-link" aria-label="post link to <%= post.title %>" href="/posts/<%= post.slug %>/"></a>
+    </a>
   </article>
 <% }) %>
