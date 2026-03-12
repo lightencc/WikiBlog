@@ -13,6 +13,7 @@ const {
   searchArticles,
   saveArticle
 } = require("./lib/articles");
+const { getAggregatedRssFeed } = require("./lib/rss");
 
 const app = express();
 const port = Number(process.env.PORT || 4321);
@@ -21,6 +22,26 @@ const PRIMARY_NAV_ITEMS = [
   { key: "categories", href: "/categories/", label: "分类" },
   { key: "tags", href: "/tags/", label: "标签" },
   { key: "search", href: "/search/", label: "搜索" }
+];
+const RSS_FEEDS = [
+  {
+    slug: "ai-digest",
+    name: "AI Digest",
+    label: "AI资讯速览",
+    description: "偏日报和精选整理，适合快速跟进近期 AI 圈的重要更新。",
+    language: "中文",
+    home: "https://ai-digest.liziran.com/zh/",
+    href: "https://ai-digest.liziran.com/zh/feed.xml"
+  },
+  {
+    slug: "ai-brief",
+    name: "AI Brief",
+    label: "AI论文简报",
+    description: "偏简报和结构化摘要，适合放进阅读器里做持续订阅。",
+    language: "中文",
+    home: "https://ai-brief.liziran.com/zh/",
+    href: "https://ai-brief.liziran.com/zh/feed.xml"
+  }
 ];
 
 app.set("view engine", "ejs");
@@ -64,6 +85,12 @@ function buildFeaturedTerms(terms, basePath, limit) {
 
 function buildThemeTabs(categories, activeThemeSlug) {
   return [
+    {
+      label: "RSS订阅",
+      slug: "rss",
+      href: "/rss/",
+      isActive: activeThemeSlug === "rss"
+    },
     {
       label: "全部",
       slug: "all",
@@ -202,6 +229,54 @@ app.get("/", (_req, res) => {
   );
 });
 
+app.get("/rss/", async (_req, res) => {
+  const { items, errors } = await getAggregatedRssFeed(RSS_FEEDS, 28);
+  const requestedSource = String(_req.query.source || "").trim();
+  const activeFeed = RSS_FEEDS.find((feed) => feed.slug === requestedSource) || null;
+  const activeRssSource = activeFeed ? activeFeed.slug : "all";
+  const filteredItems =
+    activeRssSource === "all"
+      ? items
+      : items.filter((item) => item.feedSlug === activeRssSource);
+  const rssFilterTabs = [
+    {
+      label: "全部",
+      href: "/rss/",
+      isActive: activeRssSource === "all"
+    },
+    ...RSS_FEEDS.map((feed) => ({
+      label: feed.label || feed.name,
+      href: `/rss/?source=${encodeURIComponent(feed.slug)}`,
+      isActive: activeRssSource === feed.slug
+    }))
+  ];
+
+  res.render(
+    "rss",
+    buildViewModel({
+      activeNav: "home",
+      pageKind: "rss",
+      activeThemeSlug: "rss",
+      extra: {
+        pageTitle: `RSS订阅 | ${siteConfig.siteName}`,
+        pageDescription: "直接阅读已订阅 RSS 的最新内容。",
+        rssFeeds: RSS_FEEDS,
+        rssItems: filteredItems,
+        rssErrors: errors,
+        rssFilterTabs,
+        activeRssSource,
+        rssSectionTitle: activeFeed ? activeFeed.label || activeFeed.name : "最新订阅内容",
+        formatDate,
+        pageIntro: {
+          eyebrow: "RSS",
+          title: "订阅更新",
+          lead: ""
+        }
+      }
+    })
+  );
+});
+
 app.get("/categories/", (_req, res) => {
   const categories = getAllCategories();
 
@@ -252,7 +327,7 @@ app.get("/categories/:slug/", (req, res) => {
         pageIntro: {
           eyebrow: "Category",
           title: category.name,
-          lead: `这个主题下有 ${category.count} 篇回看笔记，方便你一次重新接上上下文。`
+          lead: ""
         },
         pageSectionTitle: `${category.name} 的最新笔记`,
         pageSectionHint: `${category.count} 篇`

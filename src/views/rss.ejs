@@ -1,0 +1,78 @@
+<%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
+<body class="app-shell list page-rss" id="top">
+<%- include("partials/header", { siteConfig, primaryNavItems, pageKind, themeTabs, activeThemeSlug }) %>
+
+<main class="main main-rss">
+  <% if (rssFilterTabs && rssFilterTabs.length > 0) { %>
+    <section class="page-subnav page-subnav-rss">
+      <div class="page-subnav-row">
+        <div class="hero-chip-row">
+          <% rssFilterTabs.forEach((filter) => { %>
+            <a
+              class="hero-chip rss-filter-chip <%= filter.isActive ? 'is-active' : '' %>"
+              href="<%= filter.href %>"
+              <%- filter.isActive ? 'aria-current="page"' : '' %>
+            >
+              <%= filter.label %>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+  <% } %>
+
+  <% if (rssErrors && rssErrors.length > 0) { %>
+    <section class="rss-section">
+      <div class="search-state-card">
+        <p>有部分 RSS 源暂时拉取失败，页面仍会展示已成功获取的更新。</p>
+      </div>
+    </section>
+  <% } %>
+
+  <section class="rss-section">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">RSS Feed</p>
+          <h2><%= rssSectionTitle %></h2>
+        </div>
+        <span class="section-badge"><%= rssItems.length %> 条</span>
+      </div>
+
+    <% if (!rssItems || rssItems.length === 0) { %>
+      <p class="post-empty">暂时还没有拉到 RSS 内容，稍后刷新再看。</p>
+    <% } else { %>
+      <div class="rss-feed-list">
+        <% rssItems.forEach((item) => { %>
+          <article class="rss-item-card">
+            <a class="rss-item-link" href="<%= item.url %>" target="_blank" rel="noopener noreferrer" aria-label="打开 <%= item.title %> 原文">
+              <div class="rss-item-main">
+                <div class="rss-item-overline">
+                  <span class="entry-note">RSS订阅</span>
+                  <span class="entry-dot" aria-hidden="true"></span>
+                  <span class="entry-source"><%= item.sourceLabel || item.sourceName %></span>
+                </div>
+
+                <header class="entry-header">
+                  <h2 class="entry-hint-parent"><%= item.title %></h2>
+                </header>
+
+                <% if (item.summary) { %>
+                  <div class="entry-content rss-item-summary">
+                    <p><%= item.summary %></p>
+                  </div>
+                <% } %>
+
+                <footer class="entry-footer">
+                  <time class="entry-published" datetime="<%= item.publishedAt %>"><%= formatDate(item.publishedAt) %></time>
+                  <span class="rss-item-footer-meta"><%= item.sourceName %></span>
+                </footer>
+              </div>
+            </a>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include("partials/footer", { siteConfig }) %>
