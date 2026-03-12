@@ -1,6 +1,6 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
 <body class="app-shell page-post" id="top">
-<%- include("partials/header", { siteConfig, primaryNavItems }) %>
+<%- include("partials/header", { siteConfig, primaryNavItems, pageKind, themeTabs, activeThemeSlug }) %>
 
 <main class="main main-post">
   <article class="post-shell">
@@ -11,6 +11,11 @@
         <% if (post.summary) { %>
           <p class="post-dek"><%= post.summary %></p>
         <% } %>
+
+        <div class="post-processing-note">
+          <span class="post-processing-badge">AI整理摘要</span>
+          <p>以下内容为 AI 基于原文整理的回看笔记，方便先快速恢复上下文；若要核对细节或继续深读，可直接打开原文。</p>
+        </div>
 
         <div class="post-meta-row">
           <span title="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></span>

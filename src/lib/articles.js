@@ -10,6 +10,7 @@ const OBSIDIAN_VAULT_DIR = storageConfig.obsidianVaultPath;
 const OBSIDIAN_ROOT_DIR = storageConfig.obsidianRootPath;
 const EMOJI_REGEX = /[\p{Extended_Pictographic}]/u;
 const EMOJI_GLOBAL_REGEX = /[\p{Extended_Pictographic}]/gu;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const THEME_MATCHERS = [
   {
     theme: "ai",
@@ -169,6 +170,23 @@ function normalizeDate(value) {
     return new Date().toISOString();
   }
   return date.toISOString();
+}
+
+function calculateRecencyWeight(value) {
+  const publishedAt = new Date(value).getTime();
+
+  if (Number.isNaN(publishedAt)) {
+    return 0.35;
+  }
+
+  const ageDays = Math.max(0, (Date.now() - publishedAt) / DAY_IN_MS);
+  return 0.35 + 4 * Math.exp(-ageDays / 21);
+}
+
+function calculateTermWeight(posts) {
+  return Number(
+    posts.reduce((score, post) => score + calculateRecencyWeight(post.publishedAt), 0).toFixed(4)
+  );
 }
 
 function normalizeStringArray(input) {
@@ -658,18 +676,27 @@ function getAllTags() {
 }
 
 function getAllCategories() {
-  return buildTaxonomy("categories").map((item) => ({
-    slug: item.slug,
-    name: item.name,
-    count: item.count,
-    latestPostTitle: item.posts[0]?.title || "",
-    latestPublishedAt: item.posts[0]?.publishedAt || "",
-    previewPosts: item.posts.slice(0, 3).map((post) => ({
-      slug: post.slug,
-      title: post.title,
-      publishedAt: post.publishedAt
+  return buildTaxonomy("categories")
+    .map((item) => ({
+      slug: item.slug,
+      name: item.name,
+      count: item.count,
+      weightScore: calculateTermWeight(item.posts),
+      latestPostTitle: item.posts[0]?.title || "",
+      latestPublishedAt: item.posts[0]?.publishedAt || "",
+      previewPosts: item.posts.slice(0, 3).map((post) => ({
+        slug: post.slug,
+        title: post.title,
+        publishedAt: post.publishedAt
+      }))
     }))
-  }));
+    .sort(
+      (a, b) =>
+        b.weightScore - a.weightScore ||
+        b.count - a.count ||
+        new Date(b.latestPublishedAt).getTime() - new Date(a.latestPublishedAt).getTime() ||
+        a.name.localeCompare(b.name, "zh-Hans-CN")
+    );
 }
 
 function getTagBySlug(slug) {

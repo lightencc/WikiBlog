@@ -7,11 +7,11 @@
     <a class="post-card-link <%= post.listCoverImage ? 'has-thumb' : '' %>" aria-label="post link to <%= post.title %>" href="/posts/<%= post.slug %>/">
       <div class="entry-main">
         <div class="entry-overline">
+          <span class="entry-note">AI整理摘要</span>
           <% if (post.source && (post.source.name || post.source.platform)) { %>
-            <span class="entry-source"><%= post.source.name || post.source.platform %></span>
             <span class="entry-dot" aria-hidden="true"></span>
+            <span class="entry-source"><%= post.source.name || post.source.platform %></span>
           <% } %>
-          <time datetime="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></time>
         </div>
 
         <header class="entry-header">
@@ -37,9 +37,12 @@
         <% } %>
 
         <footer class="entry-footer">
-          <span><%= post.readingTimeMinutes %> 分钟</span>
-          <span class="entry-dot" aria-hidden="true"></span>
-          <span><%= post.wordCount %> 字</span>
+          <time class="entry-published" datetime="<%= post.publishedAt %>"><%= formatDate(post.publishedAt) %></time>
+          <span class="entry-footer-meta">
+            <span><%= post.readingTimeMinutes %> 分钟</span>
+            <span class="entry-dot" aria-hidden="true"></span>
+            <span><%= post.wordCount %> 字</span>
+          </span>
         </footer>
       </div>
 

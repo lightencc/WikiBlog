@@ -55,10 +55,28 @@ function buildFeaturedTerms(terms, basePath, limit) {
     name: term.name,
     slug: term.slug,
     count: term.count,
+    weightScore: term.weightScore || term.count,
     href: `${basePath}${term.slug}/`,
     latestPostTitle: term.latestPostTitle || "",
     latestPublishedAt: term.latestPublishedAt || ""
   }));
+}
+
+function buildThemeTabs(categories, activeThemeSlug) {
+  return [
+    {
+      label: "全部",
+      slug: "all",
+      href: "/",
+      isActive: activeThemeSlug === "all"
+    },
+    ...categories.map((category) => ({
+      label: category.name,
+      slug: category.slug,
+      href: `/categories/${category.slug}/`,
+      isActive: activeThemeSlug === category.slug
+    }))
+  ];
 }
 
 function getSourcePlatformLabel(source) {
@@ -99,18 +117,22 @@ function buildSourceCta(source) {
 function buildViewModel({
   activeNav,
   pageKind,
+  activeThemeSlug,
   featuredTags,
   featuredCategories,
   extra = {}
 }) {
+  const allCategories = getAllCategories();
+
   return {
     siteConfig,
     pageKind,
     primaryNavItems: buildPrimaryNav(activeNav),
-    featuredTags:
-      featuredTags || buildFeaturedTerms(getAllTags(), "/tags/", 8),
+    themeTabs: buildThemeTabs(allCategories, activeThemeSlug),
+    activeThemeSlug,
+    featuredTags: featuredTags || buildFeaturedTerms(getAllTags(), "/tags/", 8),
     featuredCategories:
-      featuredCategories || buildFeaturedTerms(getAllCategories(), "/categories/", 4),
+      featuredCategories || buildFeaturedTerms(allCategories, "/categories/", 4),
     ...extra
   };
 }
@@ -121,6 +143,7 @@ function renderNotFound(res, activeNav, message) {
     buildViewModel({
       activeNav,
       pageKind: "not-found",
+      activeThemeSlug: null,
       extra: {
         pageTitle: "404 | Not Found",
         pageDescription: message,
@@ -158,6 +181,7 @@ app.get("/", (_req, res) => {
     buildViewModel({
       activeNav: "home",
       pageKind: "home",
+      activeThemeSlug: "all",
       featuredTags,
       featuredCategories,
       extra: {
@@ -186,6 +210,7 @@ app.get("/categories/", (_req, res) => {
     buildViewModel({
       activeNav: "categories",
       pageKind: "taxonomy",
+      activeThemeSlug: "all",
       featuredCategories: buildFeaturedTerms(categories, "/categories/", 4),
       extra: {
         pageTitle: `分类 | ${siteConfig.siteName}`,
@@ -217,6 +242,7 @@ app.get("/categories/:slug/", (req, res) => {
     buildViewModel({
       activeNav: "categories",
       pageKind: "category-feed",
+      activeThemeSlug: category.slug,
       extra: {
         pageTitle: `${category.name} | 分类 | ${siteConfig.siteName}`,
         pageDescription: `分类 ${category.name} 下的文章`,
@@ -243,6 +269,7 @@ app.get("/tags/", (_req, res) => {
     buildViewModel({
       activeNav: "tags",
       pageKind: "taxonomy",
+      activeThemeSlug: null,
       featuredTags: buildFeaturedTerms(tags, "/tags/", 8),
       extra: {
         pageTitle: `标签 | ${siteConfig.siteName}`,
@@ -274,6 +301,7 @@ app.get("/tags/:slug/", (req, res) => {
     buildViewModel({
       activeNav: "tags",
       pageKind: "tag-feed",
+      activeThemeSlug: null,
       extra: {
         pageTitle: `${tag.name} | 标签 | ${siteConfig.siteName}`,
         pageDescription: `标签 ${tag.name} 下的文章`,
@@ -301,6 +329,7 @@ app.get("/search/", (req, res) => {
     buildViewModel({
       activeNav: "search",
       pageKind: "search",
+      activeThemeSlug: null,
       extra: {
         pageTitle: `搜索 | ${siteConfig.siteName}`,
         pageDescription: "站内文章搜索",
@@ -332,6 +361,7 @@ app.get("/posts/:slug/", (req, res) => {
     buildViewModel({
       activeNav: "home",
       pageKind: "post",
+      activeThemeSlug: post.categoryRefs[0]?.slug || null,
       extra: {
         pageTitle: `${post.title} | ${siteConfig.siteName}`,
         pageDescription: post.summary,

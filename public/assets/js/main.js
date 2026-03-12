@@ -1,13 +1,25 @@
 (function headerStateController() {
   const root = document.documentElement;
+  const desktopMedia = window.matchMedia("(min-width: 1080px)");
   let ticking = false;
 
   function updateHeaderState() {
+    if (!desktopMedia.matches) {
+      root.dataset.headerState = "expanded";
+      ticking = false;
+      return;
+    }
+
     root.dataset.headerState = window.scrollY > 18 ? "compact" : "expanded";
     ticking = false;
   }
 
   updateHeaderState();
+  if (typeof desktopMedia.addEventListener === "function") {
+    desktopMedia.addEventListener("change", updateHeaderState);
+  } else if (typeof desktopMedia.addListener === "function") {
+    desktopMedia.addListener(updateHeaderState);
+  }
 
   window.addEventListener(
     "scroll",
@@ -24,7 +36,7 @@
 })();
 
 (function activeChipScroller() {
-  const activeChip = document.querySelector(".nav-chip[aria-current='page']");
+  const activeChip = document.querySelector(".theme-tab[aria-current='page']");
 
   if (!activeChip) {
     return;

@@ -1,4 +1,4 @@
-<header class="site-header" data-site-header>
+<header class="site-header <%= pageKind === 'post' ? 'site-header-reading' : '' %>" data-site-header>
   <div class="header-shell">
     <div class="header-top">
       <div class="brand-cluster">
@@ -9,7 +9,12 @@
       </div>
 
       <div class="header-actions">
-        <a class="header-search-link" href="/search/" aria-label="搜索回看笔记">
+        <a
+          class="header-search-link <%= pageKind === 'search' ? 'is-active' : '' %>"
+          href="/search/"
+          aria-label="搜索回看笔记"
+          <%- pageKind === 'search' ? 'aria-current="page"' : '' %>
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -36,20 +41,20 @@
       </div>
     </div>
 
-    <nav class="primary-nav" aria-label="主导航">
-      <ul id="menu" class="nav-chip-list">
-        <% primaryNavItems.forEach((item) => { %>
-          <li>
+    <% if (themeTabs && themeTabs.length > 0 && pageKind !== 'post') { %>
+      <nav class="theme-tabs" aria-label="主题导航">
+        <div class="theme-tab-list">
+          <% themeTabs.forEach((item) => { %>
             <a
               href="<%= item.href %>"
-              class="nav-chip <%= item.isActive ? 'is-active' : '' %>"
+              class="theme-tab <%= item.isActive ? 'is-active' : '' %>"
               <%- item.isActive ? 'aria-current="page"' : '' %>
             >
               <span><%= item.label %></span>
             </a>
-          </li>
-        <% }) %>
-      </ul>
-    </nav>
-  </div>
+          <% }) %>
+        </div>
+      </nav>
+    <% } %>
+ </div>
 </header>

@@ -1,6 +1,6 @@
 <%- include("partials/head", { pageTitle, pageDescription, siteConfig }) %>
 <body class="app-shell list page-<%= pageKind %>" id="top">
-<%- include("partials/header", { siteConfig, primaryNavItems }) %>
+<%- include("partials/header", { siteConfig, primaryNavItems, pageKind, themeTabs, activeThemeSlug }) %>
 
 <main class="main main-feed">
   <section class="hero-panel <%= pageKind === 'home' ? 'hero-home' : 'hero-standard' %>">
@@ -8,6 +8,9 @@
       <p class="hero-kicker"><%= pageIntro.eyebrow %></p>
       <h1><%= pageIntro.title %></h1>
       <p class="hero-lead"><%= pageIntro.lead %></p>
+      <% if (pageKind === 'home' || pageKind === 'category-feed' || pageKind === 'tag-feed') { %>
+        <p class="hero-trust-note">AI 整理摘要用于快速回忆上下文，原文入口会保留给后续深读。</p>
+      <% } %>
     </div>
 
     <% if (pageKind === 'home') { %>
@@ -28,17 +31,6 @@
         <div class="hero-chip-row">
           <% featuredTags.slice(0, 6).forEach((tag) => { %>
             <a class="hero-chip" href="<%= tag.href %>">#<%= tag.name %></a>
-          <% }) %>
-        </div>
-      </div>
-    <% } %>
-
-    <% if (pageKind === 'home' && featuredCategories.length > 0) { %>
-      <div class="hero-chip-block">
-        <p class="hero-chip-label">主题分类</p>
-        <div class="hero-chip-row">
-          <% featuredCategories.forEach((category) => { %>
-            <a class="hero-chip hero-chip-soft" href="<%= category.href %>"><%= category.name %></a>
           <% }) %>
         </div>
       </div>
